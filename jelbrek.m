@@ -446,6 +446,11 @@ int bypassCodeSign(const char *macho) {
     blob->csb_reconstituted = false;
     
     size_t length = lcp->datasize;
+    if(kCFCoreFoundationVersionNumber < 1535.12) {
+        size_t lengthkptr = Kernel_alloc(sizeof(size_t));
+        KernelWrite_64bits(lengthkptr, length);
+        length = lengthkptr;
+    }
     
     if (cs_validate_csblob((const uint8_t *)addr, length, &rcd, &rentitlements)) {
         printf("[-] Invalid blob\n");
@@ -585,6 +590,12 @@ int bypassCodeSign(const char *macho) {
     free(buf);
     
     vm_size_t len = new_blob_size;
+
+    if(kCFCoreFoundationVersionNumber < 1535.12) {
+        vm_size_t lenkptr = Kernel_alloc(sizeof(vm_size_t));
+        KernelWrite_64bits(lenkptr, len);
+        len = lenkptr;
+    }
     
     CS_CodeDirectory *_cd = NULL;
     CS_GenericBlob *_entitlements = NULL;
